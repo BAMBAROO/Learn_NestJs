@@ -1,0 +1,5 @@
+npm install -D prisma
+npm install @prisma/client
+npx prisma init --datasource-provider postgresql
+npx prisma migrate dev --name migration-name
+npx prisma generate
