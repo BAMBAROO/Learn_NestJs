@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AuthDto } from './dto';
 import * as argon from 'argon2';
 
+// SERVICE UNTUK MENGELOLA KE DATABASE
 @Injectable()
 export class AuthService {
   constructor(private prismaService: PrismaService) {} // untuk mendapatkan akses terhadap PrismaService (prismaClient) yang juga terhadap akses ke databases
@@ -14,6 +15,10 @@ export class AuthService {
       data: {
         email: dto.email,
         hash,
+      },
+      select: {
+        id: true,
+        createdAt: true,
       },
     });
     return user;

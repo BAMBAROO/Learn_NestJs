@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { Request } from 'express';
 import { AuthDto } from './dto';
 
+// CONTROLLER UNTUK MENGELOLA ROUTER DAN VALIDATION
 @Controller('auth')
 export class AuthController {
   private authService: AuthService;

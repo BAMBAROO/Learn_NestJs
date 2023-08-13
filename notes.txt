@@ -1,0 +1,15 @@
+npm install -D prisma
+npm install @prisma/client
+npx prisma init --datasource-provider postgresql
+npx prisma migrate dev --name migration-name
+npx prisma generate
+
+Rangkuman
+dto -> untuk mengecek/validasi data form yang dikirim dari frontend (schema).
+class-validator -> untuk mengecek string, number, not empty pada schema dto.
+service -> bagian yang berhubungan ke database untuk melakukan CRUD.
+service -> pada class nya harus mengimport pada constructor "constructor(private authService: AuthService){}".
+main.ts -> untuk menjalankan server.
+app.module.ts -> mengumpulkan semua module-module yang mewakilkan masing-masing service dan controller.
+@Body -> menggunakan @Body() dengan DTO adalah pendekatan yang lebih direkomendasikan dalam kebanyakan kasus karena memudahkan validasi, transformasi, dan pengelolaan data secara terstruktur.
+opsi select method prisma -> menentukan nilai return atau nilai yang diambil setelah melakukan crud ke database
