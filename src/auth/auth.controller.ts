@@ -1,40 +1,37 @@
-import { Controller, Get, Post, Body, Req, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Req,
+  ParseIntPipe,
+  Res,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { AuthDto } from './dto';
 
 // CONTROLLER UNTUK MENGELOLA ROUTER DAN VALIDATION
 @Controller('auth')
 export class AuthController {
   private authService: AuthService;
+
   constructor(authService: AuthService) {
     this.authService = authService;
   }
 
-  @Post('signin')
-  signIn() {
-    return this.authService.signIn();
+  @Get('users')
+  users(@Res() res: Response) {
+    return this.authService.users(res);
   }
 
   @Post('signup')
-  signUp(@Body() dto: AuthDto) {
-    console.log({ dto });
-    return this.authService.signUp(dto);
+  signUp(@Body() dto: AuthDto, @Res() res: Response) {
+    return this.authService.signUp(dto, res);
   }
 
   @Post('login')
-  logIn(
-    @Body('email') email: string,
-    @Body('password') password: string,
-    @Req() req: Request,
-  ) {
-    console.log(req.body);
-    console.log({
-      email: email,
-      typeOfEmail: typeof email,
-      password: password,
-      typeOfPassword: typeof password,
-    });
-    return this.authService.logIn();
+  logIn(@Body() dto: AuthDto, @Res() res: Response) {
+    return this.authService.logIn(dto, res);
   }
 }

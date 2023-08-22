@@ -1,7 +1,7 @@
 import { Global, Module } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
 
-@Global() // dapat diakses service atau controller lain tanpa perlu mengImport nya
+@Global() // it helps for not doing import in every module just import directly in their service or controller file to the PrismaService
 @Module({
   providers: [PrismaService],
   exports: [PrismaService],

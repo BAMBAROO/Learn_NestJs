@@ -13,3 +13,12 @@ export class PrismaService extends PrismaClient {
     });
   }
 }
+
+// cats.service.ts
+@Injectable()
+export class CatsService {
+  getCatInfo(): string {
+    return 'This is a cat!';
+  }
+}
+
