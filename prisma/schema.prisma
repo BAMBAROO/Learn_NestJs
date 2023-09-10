@@ -15,11 +15,12 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  email     String     @unique
-  hash      String
-  firstName String?
-  lastName  String?
-  Bookmarks Bookmark[]
+  email        String     @unique
+  hash         String
+  firstName    String?
+  refreshToken String?    @unique
+  lastName     String?
+  Bookmarks    Bookmark[]
 }
 
 model Bookmark {

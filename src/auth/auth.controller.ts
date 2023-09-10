@@ -4,7 +4,7 @@ import {
   Post,
   Body,
   Req,
-  ParseIntPipe,
+  // ParseIntPipe,
   Res,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -20,7 +20,7 @@ export class AuthController {
     this.authService = authService;
   }
 
-  @Get('users')
+  @Post('users')
   users(@Res() res: Response) {
     return this.authService.users(res);
   }
@@ -30,8 +30,13 @@ export class AuthController {
     return this.authService.signUp(dto, res);
   }
 
-  @Post('login')
-  logIn(@Body() dto: AuthDto, @Res() res: Response) {
-    return this.authService.logIn(dto, res);
+  @Post('signin')
+  logIn(@Body() dto: AuthDto, @Res() res: Response, @Req() req: Request) {
+    return this.authService.signin(dto, res);
+  }
+
+  @Get('token')
+  refreshToken(@Req() req: Request, @Res() res: Response) {
+    return this.authService.refreshToken(req, res);
   }
 }
