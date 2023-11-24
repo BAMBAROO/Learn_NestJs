@@ -1,54 +1,48 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { AuthDto } from './dto';
+import { SignInDto, SignUpDto } from './dto';
 import * as argon from 'argon2';
 import { Response, Request } from 'express';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import * as jwt from 'jsonwebtoken';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+// import { Role } from './entities/user.enum';
+import AuthHelperService from '../helper/authHelper.service';
 
-class InvalidCredentials extends HttpException {
-  constructor() {
-    super('Invalid Credentials', HttpStatus.UNAUTHORIZED);
-  }
-}
-
-// SERVICE UNTUK MENGELOLA KE DATABASE
 @Injectable()
 export class AuthService {
   config: ConfigService;
-  private jwt: JwtService;
+  argon;
 
   constructor(
-    private prismaService: PrismaService,
+    private authHelper: AuthHelperService,
+    private jwt: JwtService,
     config: ConfigService,
-    jwt: JwtService,
   ) {
+    this.argon = argon;
     this.config = config;
-    this.jwt = jwt;
   } // untuk mendapatkan akses terhadap PrismaService (prismaClient) yang juga terhadap akses ke databases
 
-  async signUp(dto: AuthDto, res: Response) {
+  async signUp(dto: SignUpDto, res: Response) {
+    // const { firstName, lastName, email, password } = dto;
     try {
-      const hash = await argon.hash(dto.password);
-      // save to database
-      const user = await this.prismaService.user.create({
-        data: {
-          email: dto.email,
-          hash,
-        },
-      });
-      delete user.hash; // same just select option
-      return res.status(HttpStatus.CREATED).json(user);
+      /** save to database **/
+      // const hash = await this.authHelper.hashingPassword(password);
+
+      /** on development **/
+      // const user = await this.authHelper.addUser({
+      //   firstName,
+      //   lastName,
+      //   email,
+      //   hash,
+      // });
+      // delete user.hash; // same just select option
+      return res.status(HttpStatus.CREATED).json(dto);
     } catch (e) {
+      /** if unique column has been taken **/
       if (e instanceof PrismaClientKnownRequestError) {
         if (e.code === 'P2002') {
           throw new HttpException(
-            {
-              status: HttpStatus.FORBIDDEN,
-              error: 'Credentials taken',
-            },
+            { error: 'Credential Taken', status: HttpStatus.FORBIDDEN },
             HttpStatus.FORBIDDEN,
           );
         }
@@ -57,68 +51,62 @@ export class AuthService {
     }
   }
 
-  async signin(dto: AuthDto, res: Response) {
+  async signin(dto: SignInDto, res: Response) {
     try {
+      /** on development **/
       const { email, password } = dto;
-      const user = await this.prismaService.user.findUnique({
-        where: {
-          email: email,
-        },
-        select: {
-          email: true,
-          hash: true,
-          id: true,
-        },
-      });
-      if (!user) throw new InvalidCredentials();
-      const matchPassword: boolean = await argon.verify(user.hash, password);
-      if (!matchPassword) throw new InvalidCredentials();
-      const accessToken: string = jwt.sign(
-        user,
-        this.config.get<string>('SECRET_KEY_ACCESS'),
-        { expiresIn: '20s' },
-      );
-      // const refreshToken: string = jwt.sign(
-      //   user,
-      //   this.config.get<string>('SECRET_KEY_REFRESH'),
-      //   { expiresIn: '1d' },
-      // );
-      const payload: object = { email: user.email, hash: user.hash };
-      const refreshToken = await this.jwt.signAsync(payload, {
-        secret: this.config.get<string>('SECRET_KEY_REFRESH'),
-      });
-      console.log({ refreshToken });
+
+      /** ond development **/
+      // const { email, hash } = await this.authHelper.findUserByEmail(dto.email);
+      // await this.authHelper.verifyPassword(hash, password);
+
+      /** create token and set token **/
+      const payload = { email, hash: password };
+      const accessToken = await this.authHelper.createAccessToken(dto);
+      const refreshToken = await this.authHelper.createRefreshToken(dto);
       res.cookie('refreshToken', refreshToken, {
         maxAge: 24 * 60 * 60 * 1000,
       });
-      await this.prismaService.user
-        .update({
-          where: {
-            email: user.email,
-          },
-          data: {
-            refreshToken: refreshToken,
-          },
-        })
-        .catch((err): void => {
-          console.log(err);
-          res.sendStatus(HttpStatus.CONFLICT);
-        });
+
+      /** on development **/
+      // this.authHelper
+      //   .updateToken({ email, refreshToken })
+      //   .catch((err): void => {
+      //     console.log(err);
+      //     throw new HttpException(
+      //       { error: 'Conflict', status: HttpStatus.CONFLICT },
+      //       HttpStatus.CONFLICT,
+      //     );
+      //   });
       res.status(HttpStatus.OK).json(accessToken);
     } catch (e) {
-      console.log(e);
       throw e;
     }
   }
 
-  async users(res: Response) {
+  async signOut(req: Request, res: Response) {
     try {
-      const users = await this.prismaService.user.findMany();
-      if (!users)
-        throw new HttpException('Users Not Found', HttpStatus.NOT_FOUND);
-      res.status(HttpStatus.OK).json({ users });
+      const refreshToken = req.cookies['refreshToken'];
+      if (!refreshToken)
+        throw new HttpException(
+          { error: 'Unauthorized', status: HttpStatus.UNAUTHORIZED },
+          HttpStatus.UNAUTHORIZED,
+        );
+
+      /** on development **/
+      // const { email } = await this.authHelper.findUserByRefreshToken({
+      //   refreshToken,
+      // });
+      // this.authHelper.deleteRefreshToken({ email }).catch((err): void => {
+      //   console.log(err);
+      //   throw new HttpException(
+      //     { error: 'Conflict', status: HttpStatus.CONFLICT },
+      //     HttpStatus.CONFLICT,
+      //   );
+      // });
+
+      return res.clearCookie('refreshToken').sendStatus(HttpStatus.OK);
     } catch (e) {
-      console.log(e);
       throw e;
     }
   }
@@ -126,25 +114,18 @@ export class AuthService {
   async refreshToken(req: Request, res: Response) {
     try {
       const refreshToken = req.cookies['refreshToken'];
-      await this.prismaService.user
-        .findUnique({
-          where: {
-            refreshToken: refreshToken,
-          },
-          select: {
-            email: true,
-            id: true,
-          },
-        })
+      await this.authHelper
+        .findUserByRefreshToken({ refreshToken })
         .then(async (user: object) => {
-          const accessToken: string = await this.jwt.signAsync(user, {
-            secret: this.config.get<string>('SECRET_KEY_REFRESH'),
-          });
+          const accessToken = await this.authHelper.createAccessToken(user);
           return res.status(HttpStatus.OK).json(accessToken);
         })
         .catch((err) => {
           console.log(err);
-          res.sendStatus(HttpStatus.FORBIDDEN);
+          throw new HttpException(
+            { error: 'Forbidden', status: HttpStatus.FORBIDDEN },
+            HttpStatus.FORBIDDEN,
+          );
         });
     } catch (err) {
       console.log(err);

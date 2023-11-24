@@ -25,11 +25,9 @@
 //   },
 // });
 // bryan.introduceMe();
-
 // const array: number[] = [2, 4, 6, 8, 10];
 // const result = array.every((value, index, array) => value % 2 === 0);
 // console.log(result);
-
 // interface User {
 //   id: string;
 //   name: string;
@@ -44,7 +42,6 @@
 // };
 // const userObject: User = userData as User; // Disini, Anda yakin 'userData' memiliki struktur yang sesuai dengan tipe 'User'.
 // console.log(userObject);
-
 // import { UserEntity } from './src/auth/entities/rekam_medis.entity';
 // import { Role } from './src/auth/entities/rekam_medis.enum';
 //
@@ -55,17 +52,13 @@
 //
 // const adminRole: Role[] = [Role.GOLD, Role.SILVER];
 // const userRole: Role[] = [Role.BRONZE];
-
-const namaHewan = ['sapi', 'kuda'];
-const hewan = {
-  nama: 'kuda',
-  jenis: 'pemakan tumbuhan',
+var namaHewan = ['sapi', 'kuda'];
+var hewan = {
+    nama: 'kuda',
+    jenis: 'pemakan tumbuhan',
 };
-
-function pengecekan(nama: string, namaHewan: string[]): boolean {
-  return namaHewan.includes(nama);
+function pengecekan(nama, namaHewan) {
+    return namaHewan.includes(nama);
 }
-
-const result = pengecekan(hewan.nama, namaHewan);
-
+var result = pengecekan(hewan.nama, namaHewan);
 console.log(new Date());

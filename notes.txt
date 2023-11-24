@@ -17,3 +17,12 @@ app.module.ts -> merupakan kumpulan semua module (service dan controller) dari b
 providers -> logika bisnis atau yang berbau integrasi ke database.
 controllers -> controller menangani http request seperti get, post, delete, update dan data form.
 
+Endpoint:
+'/' :GET -> data dashbooard
+'/registrasi' :POST -> registrasi pasien
+'/signup' :POST -> daftar untuk master
+'/signin' :POST -> masuk untuk semua user
+'/signout' :DELETE -> keluar akun
+'/rawat' :GET -> nomor remak medis terakhir
+'/rawat' :POST -> daftar rawat
+... on development
